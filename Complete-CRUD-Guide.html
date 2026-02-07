@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASP.NET Core MVC CRUD - Complete Step-by-Step Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-darker: #060920;
+            --accent-primary: #00ff88;
+            --accent-secondary: #00d4ff;
+            --accent-tertiary: #ff0066;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b2d1;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(0, 255, 136, 0.2);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 0, 102, 0.08) 0%, transparent 50%);
+            z-index: -1;
+            animation: bgShift 20s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Header */
+        header {
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            animation: slideDown 1s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--accent-secondary);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            animation: fadeIn 1.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Scroll Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            z-index: 1000;
+            transition: width 0.2s;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            animation: slideUp 1s ease;
+        }
+
+        /* Toggle Button */
+        .nav-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .nav-toggle:hover h2 {
+            color: var(--accent-secondary);
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* Nav Content */
+        .nav-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .nav-content.expanded {
+            max-height: 1000px;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        nav h2 {
+            font-family: 'Syne', sans-serif;
+            color: var(--accent-primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .nav-item {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: block;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(10px);
+            border-color: var(--accent-primary);
+        }
+
+        .nav-item span {
+            color: var(--accent-primary);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        /* Section */
+        .section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease;
+            animation-fill-mode: both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section:nth-child(1) { animation-delay: 0.1s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+        .section:nth-child(4) { animation-delay: 0.4s; }
+        .section:nth-child(5) { animation-delay: 0.5s; }
+
+        .section h2 {
+            font-family: 'Syne', sans-serif;
+            color: var(--accent-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .section h3 {
+            font-family: 'Syne', sans-serif;
+            color: var(--accent-secondary);
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+        }
+
+        .section h4 {
+            color: var(--accent-tertiary);
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem;
+        }
+
+        /* Step Box */
+        .step-box {
+            background: rgba(0, 212, 255, 0.05);
+            border-left: 4px solid var(--accent-secondary);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .step-box:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        /* Code Block */
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Inline Code */
+        p code, li code, td code {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent-secondary);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--accent-primary);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        /* Highlight */
+        .highlight {
+            color: var(--accent-primary);
+            font-weight: bold;
+        }
+
+        /* Warning/Success Boxes */
+        .warning, .success, .info {
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .warning {
+            background: rgba(255, 0, 102, 0.1);
+            border-color: var(--accent-tertiary);
+        }
+
+        .success {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        .info {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--accent-secondary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 5rem;
+        }
+
+        footer p {
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+        }
+
+        /* Image Styles */
+        .screenshot {
+            max-width: 100%;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Header -->
+    <header>
+        <h1>Complete ASP.NET MVC CRUD Guide</h1>
+        <p class="subtitle">From Zero to Full CRUD Application</p>
+    </header>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="nav-toggle" onclick="toggleNav()">
+                <h2>📚 Table of Contents</h2>
+                <span class="toggle-icon" id="toggleIcon">▼</span>
+            </div>
+            <div class="nav-content" id="navContent">
+                <div class="nav-grid">
+                    <a href="#step1" class="nav-item"><span>01</span> Install Packages</a>
+                    <a href="#step2" class="nav-item"><span>02</span> Setup Bootstrap Layout</a>
+                    <a href="#step3" class="nav-item"><span>03</span> Create Database & Entity</a>
+                    <a href="#step4" class="nav-item"><span>04</span> Create ViewModels</a>
+                    <a href="#step5" class="nav-item"><span>05</span> File Upload Helper</a>
+                    <a href="#step6" class="nav-item"><span>06</span> Controller Actions</a>
+                    <a href="#step7" class="nav-item"><span>07</span> Create Views</a>
+                    <a href="#step8" class="nav-item"><span>08</span> Testing & Final Setup</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Step 1: Install Packages -->
+        <section id="step1" class="section">
+            <h2>01. Install Required NuGet Packages</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Installing Entity Framework Core packages to enable database operations in your ASP.NET MVC application.
+            </div>
+
+            <h3>Required Packages</h3>
+            
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Right-click on your project → Manage NuGet Packages</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Click "Browse" tab and search for each package:</strong>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Package Name</th>
+                        <th>Purpose</th>
+                        <th>Version</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Microsoft.EntityFrameworkCore</code></td>
+                        <td>Core EF functionality</td>
+                        <td>Latest stable (8.x)</td>
+                    </tr>
+                    <tr>
+                        <td><code>Microsoft.EntityFrameworkCore.SqlServer</code></td>
+                        <td>SQL Server database provider</td>
+                        <td>Latest stable (8.x)</td>
+                    </tr>
+                    <tr>
+                        <td><code>Microsoft.EntityFrameworkCore.Tools</code></td>
+                        <td>Migrations and scaffolding tools</td>
+                        <td>Latest stable (8.x)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning">
+                <strong>⚠️ Important:</strong> All three packages should have the SAME version number to avoid compatibility issues!
+            </div>
+
+            <h3>Alternative: Package Manager Console</h3>
+            <pre><code>Install-Package Microsoft.EntityFrameworkCore -Version 8.0.0
+Install-Package Microsoft.EntityFrameworkCore.SqlServer -Version 8.0.0
+Install-Package Microsoft.EntityFrameworkCore.Tools -Version 8.0.0</code></pre>
+
+            <div class="success">
+                ✅ Packages installed successfully! You're ready to work with databases.
+            </div>
+        </section>
+
+        <!-- Step 2: Setup Bootstrap Layout -->
+        <section id="step2" class="section">
+            <h2>02. Download & Setup Bootstrap Layout</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Setting up a professional Bootstrap theme as the main layout for your application.
+            </div>
+
+            <h3>Download the Template</h3>
+            
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Visit Start Bootstrap:</strong>
+            </div>
+            <pre><code>https://startbootstrap.com/theme/freelancer</code></pre>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Click "Free Download" button</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>Extract the downloaded ZIP file</strong>
+            </div>
+
+            <h3>Setup Files in Your Project</h3>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>Copy CSS files:</strong>
+            </div>
+            <ul>
+                <li>From: <code>startbootstrap-freelancer-master/css/styles.css</code></li>
+                <li>To: <code>YourProject/wwwroot/css/styles.css</code></li>
+            </ul>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>Copy JavaScript files:</strong>
+            </div>
+            <ul>
+                <li>From: <code>startbootstrap-freelancer-master/js/scripts.js</code></li>
+                <li>To: <code>YourProject/wwwroot/js/scripts.js</code></li>
+            </ul>
+
+            <div class="step-box">
+                <span class="step-number">6</span>
+                <strong>Copy assets folder (images, icons):</strong>
+            </div>
+            <ul>
+                <li>From: <code>startbootstrap-freelancer-master/assets/</code></li>
+                <li>To: <code>YourProject/wwwroot/assets/</code></li>
+            </ul>
+
+            <h3>Create the Layout File</h3>
+
+            <div class="step-box">
+                <span class="step-number">7</span>
+                <strong>Navigate to:</strong> <code>Views/Shared/</code>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">8</span>
+                <strong>Create or replace <code>_Layout.cshtml</code> with:</strong>
+            </div>
+
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8" /&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" /&gt;
+    &lt;meta name="description" content="" /&gt;
+    &lt;meta name="author" content="" /&gt;
+    &lt;title&gt;@ViewData["Title"] - Employee Management&lt;/title&gt;
+    
+    &lt;!-- Favicon--&gt;
+    &lt;link rel="icon" type="image/x-icon" href="~/assets/favicon.ico" /&gt;
+    
+    &lt;!-- Font Awesome icons (free version)--&gt;
+    &lt;script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"&gt;&lt;/script&gt;
+    
+    &lt;!-- Google fonts--&gt;
+    &lt;link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" /&gt;
+    &lt;link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" /&gt;
+    
+    &lt;!-- Core theme CSS (includes Bootstrap)--&gt;
+    &lt;link href="~/css/styles.css" rel="stylesheet" /&gt;
+&lt;/head&gt;
+&lt;body id="page-top"&gt;
+    &lt;!-- Navigation--&gt;
+    &lt;nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav"&gt;
+        &lt;div class="container"&gt;
+            &lt;a class="navbar-brand" href="/"&gt;Employee System&lt;/a&gt;
+            &lt;button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" 
+                    type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"&gt;
+                Menu
+                &lt;i class="fas fa-bars"&gt;&lt;/i&gt;
+            &lt;/button&gt;
+            &lt;div class="collapse navbar-collapse" id="navbarResponsive"&gt;
+                &lt;ul class="navbar-nav ms-auto"&gt;
+                    &lt;li class="nav-item mx-0 mx-lg-1"&gt;
+                        &lt;a class="nav-link py-3 px-0 px-lg-3 rounded" href="/Employee/ShowAll"&gt;All Employees&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="nav-item mx-0 mx-lg-1"&gt;
+                        &lt;a class="nav-link py-3 px-0 px-lg-3 rounded" href="/Employee/Create"&gt;Add Employee&lt;/a&gt;
+                    &lt;/li&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/nav&gt;
+
+    &lt;!-- Main Content --&gt;
+    &lt;main style="padding-top: 100px; min-height: 80vh;"&gt;
+        @RenderBody()
+    &lt;/main&gt;
+
+    &lt;!-- Footer--&gt;
+    &lt;footer class="footer text-center"&gt;
+        &lt;div class="container"&gt;
+            &lt;div class="row"&gt;
+                &lt;div class="col-lg-4 mb-5 mb-lg-0"&gt;
+                    &lt;h4 class="text-uppercase mb-4"&gt;Location&lt;/h4&gt;
+                    &lt;p class="lead mb-0"&gt;Your Company Address&lt;br /&gt;City, Country&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div class="col-lg-4 mb-5 mb-lg-0"&gt;
+                    &lt;h4 class="text-uppercase mb-4"&gt;Around the Web&lt;/h4&gt;
+                    &lt;a class="btn btn-outline-light btn-social mx-1" href="#!"&gt;
+                        &lt;i class="fab fa-fw fa-facebook-f"&gt;&lt;/i&gt;
+                    &lt;/a&gt;
+                    &lt;a class="btn btn-outline-light btn-social mx-1" href="#!"&gt;
+                        &lt;i class="fab fa-fw fa-twitter"&gt;&lt;/i&gt;
+                    &lt;/a&gt;
+                    &lt;a class="btn btn-outline-light btn-social mx-1" href="#!"&gt;
+                        &lt;i class="fab fa-fw fa-linkedin-in"&gt;&lt;/i&gt;
+                    &lt;/a&gt;
+                &lt;/div&gt;
+                &lt;div class="col-lg-4"&gt;
+                    &lt;h4 class="text-uppercase mb-4"&gt;About&lt;/h4&gt;
+                    &lt;p class="lead mb-0"&gt;Employee Management System built with ASP.NET Core MVC&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/footer&gt;
+    
+    &lt;!-- Copyright Section--&gt;
+    &lt;div class="copyright py-4 text-center text-white"&gt;
+        &lt;div class="container"&gt;&lt;small&gt;Copyright &copy; Your Website 2024&lt;/small&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Bootstrap core JS--&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;
+    
+    &lt;!-- Core theme JS--&gt;
+    &lt;script src="~/js/scripts.js"&gt;&lt;/script&gt;
+
+    &lt;!-- jQuery (required for validation) --&gt;
+    &lt;script src="~/lib/jquery/dist/jquery.min.js"&gt;&lt;/script&gt;
+    
+    &lt;!-- jQuery Validation Plugin --&gt;
+    &lt;script src="~/lib/jquery-validation/dist/jquery.validate.min.js"&gt;&lt;/script&gt;
+    
+    &lt;!-- jQuery Validation Unobtrusive --&gt;
+    &lt;script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"&gt;&lt;/script&gt;
+
+    @RenderSection("Scripts", required: false)
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <h3>Configure _ViewStart.cshtml</h3>
+            
+            <div class="step-box">
+                <span class="step-number">9</span>
+                <strong>In <code>Views/_ViewStart.cshtml</code>, add:</strong>
+            </div>
+
+            <pre><code>@{
+    Layout = "_Layout";
+}</code></pre>
+
+            <div class="success">
+                ✅ Bootstrap layout successfully integrated! Your app now has a professional look.
+            </div>
+        </section>
+
+        <!-- Step 3: Create Database & Entity -->
+        <section id="step3" class="section">
+            <h2>03. Create Database Entity & DbContext</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Creating the Employee model and database context to store and manage employee data.
+            </div>
+
+            <h3>Create Project Folder Structure</h3>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Create the following folders in your project:</strong>
+            </div>
+
+            <pre style="background: rgba(0, 0, 0, 0.6); border: 2px solid var(--accent-secondary); padding: 1.5rem;"><code style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.8;">📁 <span style="color: var(--accent-secondary); font-weight: bold;">YourProject/</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">DAL/</span>
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">DB/</span>
+│  │  └─ 📄 <span style="color: var(--accent-primary);">ApplicationDbContext.cs</span>
+│  │
+│  └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Entities/</span>
+│     └─ 📄 <span style="color: var(--accent-primary);">Employee.cs</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">ViewModels/</span>
+│  └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">EmployeeVM/</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">CreateEmployeeVM.cs</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">EditEmployeeVM.cs</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">DeleteEmployeeVM.cs</span>
+│     └─ 📄 <span style="color: var(--accent-primary);">ShowAllEmployeeVM.cs</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Helper/</span>
+│  └─ 📄 <span style="color: var(--accent-primary);">Upload.cs</span>
+│
+└─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Controllers/</span>
+   └─ 📄 <span style="color: var(--accent-primary);">EmployeeController.cs</span>
+</code></pre>
+
+            <h3>Create Employee Entity</h3>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Create <code>DAL/Entities/Employee.cs</code>:</strong>
+            </div>
+
+            <pre><code>namespace crud_v2.DAL.Entities
+{
+    public class Employee
+    {
+        // Primary Key - Auto-incremented by database
+        public int Id { get; set; }
+        
+        // Employee basic information
+        public string Name { get; set; }
+        public double Salary { get; set; }
+
+        // Image filename stored in database (not the actual image)
+        // Example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890profile.jpg"
+        public string? File { get; set; }
+
+        // Audit fields - Track when records are created/updated/deleted
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime? UpdatedOn { get; set; }
+        public DateTime? DeletedOn { get; set; }
+
+        // Track who performed the action (optional - for future use)
+        public string? CreatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public string? DeletedBy { get; set; }
+    }
+}</code></pre>
+
+            <div class="info">
+                <strong>💡 Understanding the Entity:</strong>
+                <ul>
+                    <li><code>Id</code> - Automatically generated by database</li>
+                    <li><code>Name & Salary</code> - Core employee data</li>
+                    <li><code>File</code> - Stores only the filename (with ?) meaning it's nullable/optional</li>
+                    <li><code>DateTime?</code> - The ? means nullable (can be null)</li>
+                    <li><code>CreatedOn</code> - Automatically set to current time when created</li>
+                </ul>
+            </div>
+
+            <h3>Create Database Context</h3>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>Create <code>DAL/DB/ApplicationDbContext.cs</code>:</strong>
+            </div>
+
+            <pre><code>using crud_v2.DAL.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace crud_v1.DAL.DB
+{
+    public class ApplicationDbContext : DbContext
+    {
+        // Configure database connection
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(
+                "Server=.;Database=EMPDB;Trusted_Connection=True;TrustServerCertificate=True;"
+            );
+        }
+
+        // Define database table
+        // This creates a table named "employees" in the database
+        public DbSet&lt;Employee&gt; employees { get; set; }
+    }
+}</code></pre>
+
+            <div class="info">
+                <strong>💡 Understanding Connection String:</strong>
+                <ul>
+                    <li><code>Server=.</code> - Local SQL Server (dot means localhost)</li>
+                    <li><code>Database=EMPDB</code> - Database name (will be created)</li>
+                    <li><code>Trusted_Connection=True</code> - Use Windows Authentication</li>
+                    <li><code>TrustServerCertificate=True</code> - Required for local development</li>
+                </ul>
+            </div>
+
+            <h3>Create Database Migration</h3>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>Open Package Manager Console:</strong> Tools → NuGet Package Manager → Package Manager Console
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>Create Initial Migration:</strong>
+            </div>
+
+            <pre><code>Add-Migration InitialCreate</code></pre>
+
+            <div class="step-box">
+                <span class="step-number">6</span>
+                <strong>Apply Migration to Database:</strong>
+            </div>
+
+            <pre><code>Update-Database</code></pre>
+
+            <div class="info">
+                <strong>💡 What Just Happened?</strong>
+                <ol>
+                    <li><code>Add-Migration</code> - Created C# code to build your database structure</li>
+                    <li><code>Update-Database</code> - Actually created the EMPDB database with employees table</li>
+                    <li>EF created a Migrations folder in your project with the migration file</li>
+                </ol>
+            </div>
+
+            <div class="success">
+                ✅ Database created successfully! Check SQL Server to see your EMPDB database and employees table.
+            </div>
+        </section>
+
+        <!-- Step 4: Create ViewModels -->
+        <section id="step4" class="section">
+            <h2>04. Create ViewModels for Each Operation</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Creating ViewModels to transfer data between Controller and Views. ViewModels contain only the data needed for specific views, not the entire entity.
+            </div>
+
+            <h3>Why Use ViewModels?</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Benefit</th>
+                        <th>Explanation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="highlight">Security</span></td>
+                        <td>Don't expose all entity properties to the view</td>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight">Validation</span></td>
+                        <td>Different validation rules for Create vs Edit</td>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight">Clean Separation</span></td>
+                        <td>View logic separated from database logic</td>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight">Flexibility</span></td>
+                        <td>Add properties not in database (like ExistingFile)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>1. ShowAllEmployeeVM</h3>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Create <code>ViewModels/EmployeeVM/ShowAllEmployeeVM.cs</code>:</strong>
+            </div>
+
+            <pre><code>namespace crud_v2.ModelVM.EmployeeVM
+{
+    public class ShowAllEmployeeVM
+    {
+        // Properties to display in the table
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Salary { get; set; }
+        public string? File { get; set; }
+        public DateTime CreatedOn { get; set; }
+        
+        // Note: We don't include UpdatedOn, DeletedOn, CreatedBy etc.
+        // because they're not needed in the display table
+    }
+}</code></pre>
+
+            <h3>2. CreateEmployeeVM</h3>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Create <code>ViewModels/EmployeeVM/CreateEmployeeVM.cs</code>:</strong>
+            </div>
+
+            <pre><code>using System.ComponentModel.DataAnnotations;
+
+namespace crud_v2.ViewModels
+{
+    public class CreateEmployeeVM
+    {
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(100, MinimumLength = 3, 
+            ErrorMessage = "Name must be between 3 and 100 characters")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Salary is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "Salary must be a positive number")]
+        public double Salary { get; set; }
+
+        [Display(Name = "Upload Profile Picture")]
+        public IFormFile? File { get; set; }
+        
+        // Note: 
+        // - IFormFile is used to receive uploaded files
+        // - No Id property (database generates it)
+        // - No CreatedOn (set automatically in controller)
+    }
+}</code></pre>
+
+            <div class="info">
+                <strong>💡 Validation Attributes Explained:</strong>
+                <ul>
+                    <li><code>[Required]</code> - Field must have a value</li>
+                    <li><code>[StringLength]</code> - Minimum and maximum character length</li>
+                    <li><code>[Range]</code> - Value must be within specified range</li>
+                    <li><code>[Display]</code> - Custom label shown in the form</li>
+                </ul>
+            </div>
+
+            <h3>3. EditEmployeeVM</h3>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>Create <code>ViewModels/EmployeeVM/EditEmployeeVM.cs</code>:</strong>
+            </div>
+
+            <pre><code>using System.ComponentModel.DataAnnotations;
+
+namespace crud_v2.ViewModels
+{
+    public class EditEmployeeVM
+    {
+        // Hidden field - needed to identify which employee to update
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(100, MinimumLength = 3, 
+            ErrorMessage = "Name must be between 3 and 100 characters")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Salary is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "Salary must be a positive number")]
+        public double Salary { get; set; }
+
+        [Display(Name = "Upload New Profile Picture")]
+        public IFormFile? File { get; set; }
+
+        // Store existing filename to keep it if user doesn't upload new image
+        public string? ExistingFile { get; set; }
+        
+        // Note:
+        // - Id is included (we need to know which employee to update)
+        // - ExistingFile stores current image filename
+        // - File is optional (user may not want to change image)
+    }
+}</code></pre>
+
+            <h3>4. DeleteEmployeeVM</h3>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>Create <code>ViewModels/EmployeeVM/DeleteEmployeeVM.cs</code>:</strong>
+            </div>
+
+            <pre><code>namespace crud_v2.ViewModels
+{
+    public class DeleteEmployeeVM
+    {
+        // Read-only properties for confirmation page
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Salary { get; set; }
+        public string? File { get; set; }
+        public DateTime CreatedOn { get; set; }
+        
+        // Note:
+        // - No validation attributes (delete confirmation doesn't need validation)
+        // - Shows all important info for user to confirm deletion
+    }
+}</code></pre>
+
+            <div class="success">
+                ✅ All ViewModels created! Each ViewModel is tailored for its specific operation.
+            </div>
+        </section>
+
+        <!-- Step 5: File Upload Helper -->
+        <section id="step5" class="section">
+            <h2>05. Create File Upload Helper Class</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Creating a reusable helper class to handle file uploads and deletions.
+            </div>
+
+            <h3>File Upload Process Flow</h3>
+
+            <div class="step-box">
+                <strong>Step 1:</strong> User selects file in browser
+            </div>
+            <div class="step-box">
+                <strong>Step 2:</strong> Form submits with <code>enctype="multipart/form-data"</code>
+            </div>
+            <div class="step-box">
+                <strong>Step 3:</strong> Controller receives IFormFile object
+            </div>
+            <div class="step-box">
+                <strong>Step 4:</strong> Helper generates unique filename (GUID + original name)
+            </div>
+            <div class="step-box">
+                <strong>Step 5:</strong> File saved to <code>wwwroot/Files/ImageProfile/</code>
+            </div>
+            <div class="step-box">
+                <strong>Step 6:</strong> Only filename (not path) stored in database
+            </div>
+
+            <h3>Create Upload Helper Class</h3>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Create <code>Helper/Upload.cs</code>:</strong>
+            </div>
+
+            <pre><code>namespace crud_v2.Helper
+{
+    public class Upload
+    {
+        /// &lt;summary&gt;
+        /// Uploads a file to the specified folder and returns the saved filename
+        /// &lt;/summary&gt;
+        /// &lt;param name="FolderName"&gt;Subfolder name under wwwroot/Files/&lt;/param&gt;
+        /// &lt;param name="File"&gt;The uploaded file&lt;/param&gt;
+        /// &lt;returns&gt;Generated filename or error message&lt;/returns&gt;
+        public static string UploadFile(string FolderName, IFormFile File)
+        {
+            try
+            {
+                // STEP 1: Build the folder path
+                // Example: C:\MyProject\wwwroot\Files\ImageProfile\
+                string FolderPath = Directory.GetCurrentDirectory() + "/wwwroot/Files/" + FolderName;
+
+                // STEP 2: Create a unique filename
+                // GUID generates a unique 36-character identifier
+                // Example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890profile.jpg"
+                string FileName = Guid.NewGuid() + Path.GetFileName(File.FileName);
+
+                // STEP 3: Combine folder path with filename
+                // Example: C:\MyProject\wwwroot\Files\ImageProfile\a1b2c3d4...profile.jpg
+                string FinalPath = Path.Combine(FolderPath, FileName);
+
+                // STEP 4: Save the file to disk
+                // Using 'using' ensures the file stream is properly closed
+                using (var Stream = new FileStream(FinalPath, FileMode.Create))
+                {
+                    File.CopyTo(Stream);
+                }
+
+                // STEP 5: Return only the filename (not the full path)
+                // We store only filename in database for portability
+                return FileName;
+            }
+            catch (Exception ex)
+            {
+                // Return error message if something goes wrong
+                return ex.Message;
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// Deletes a file from the specified folder
+        /// &lt;/summary&gt;
+        /// &lt;param name="FolderName"&gt;Subfolder name under wwwroot/Files/&lt;/param&gt;
+        /// &lt;param name="fileName"&gt;Name of the file to delete&lt;/param&gt;
+        /// &lt;returns&gt;Success or error message&lt;/returns&gt;
+        public static string RemoveFile(string FolderName, string fileName)
+        {
+            try
+            {
+                // Build the complete file path
+                var directory = Path.Combine(
+                    Directory.GetCurrentDirectory(), 
+                    "wwwroot/Files", 
+                    FolderName, 
+                    fileName
+                );
+
+                // Check if file exists before trying to delete
+                if (File.Exists(directory))
+                {
+                    File.Delete(directory);
+                    return "File Deleted";
+                }
+
+                return "File Not Found";
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+    }
+}</code></pre>
+
+            <h3>Create Image Storage Folder</h3>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Create this folder structure in your project:</strong>
+            </div>
+
+            <pre style="background: rgba(0, 0, 0, 0.6); border: 2px solid var(--accent-secondary); padding: 1.5rem;"><code style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.8;">📁 <span style="color: var(--accent-secondary); font-weight: bold;">wwwroot/</span>
+│
+└─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Files/</span>
+   └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">ImageProfile/</span>
+      └─ <span style="color: #888;">📷 (uploaded images will be stored here)</span>
+</code></pre>
+
+            <div class="warning">
+                <strong>⚠️ Important:</strong> Make sure the <code>ImageProfile</code> folder exists before running the application, or the file upload will fail!
+            </div>
+
+            <div class="info">
+                <strong>💡 Why Use GUID for Filenames?</strong>
+                <ul>
+                    <li>✅ Ensures uniqueness - no filename conflicts</li>
+                    <li>✅ Prevents overwriting existing files</li>
+                    <li>✅ Security - obscures original filename</li>
+                    <li>✅ Works with any file extension</li>
+                </ul>
+            </div>
+
+            <div class="success">
+                ✅ File upload system ready! Images will be safely stored and managed.
+            </div>
+        </section>
+
+        <!-- Step 6: Controller Actions -->
+        <section id="step6" class="section">
+            <h2>06. Create Employee Controller with CRUD Operations</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Creating the controller that handles all employee operations - Create, Read, Update, Delete.
+            </div>
+
+            <h3>Create Controller File</h3>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Create <code>Controllers/EmployeeController.cs</code>:</strong>
+            </div>
+
+            <pre><code>using crud_v1.DAL.DB;
+using crud_v2.DAL.Entities;
+using crud_v2.Helper;
+using crud_v2.ModelVM.EmployeeVM;
+using crud_v2.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+
+namespace crud_v2.Controllers
+{
+    public class EmployeeController : Controller
+    {
+        // Create database context instance
+        // This gives us access to the database
+        private readonly ApplicationDbContext context = new ApplicationDbContext();
+
+        // ==========================================
+        // [1] READ - Show All Employees
+        // ==========================================
+        public IActionResult showAll()
+        {
+            // Query database and map to ViewModel
+            var result = context.employees
+                .Select(e => new ShowAllEmployeeVM
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    Salary = e.Salary,
+                    File = e.File,
+                    CreatedOn = e.CreatedOn
+                })
+                .ToList();
+            
+            return View(result);
+        }
+
+        // ==========================================
+        // [2] CREATE - GET (Show Create Form)
+        // ==========================================
+        public IActionResult Create()
+        {
+            // Just return the empty form
+            return View();
+        }
+
+        // ==========================================
+        // [2] CREATE - POST (Save New Employee)
+        // ==========================================
+        [HttpPost]
+        public IActionResult SaveData(CreateEmployeeVM newemployee)
+        {
+            // STEP 1: Upload the image file
+            string image = Upload.UploadFile("ImageProfile", newemployee.File);
+
+            // STEP 2: Validate required fields (server-side validation)
+            if (newemployee.Name == null || newemployee.Salary == 0)
+            {
+                return View(viewName: "Create");
+            }
+
+            // STEP 3: Map ViewModel to Entity
+            Employee emp = new Employee()
+            {
+                Name = newemployee.Name,
+                Salary = newemployee.Salary,
+                File = image,  // Store the generated filename
+                CreatedOn = DateTime.Now
+            };
+
+            // STEP 4: Add to database
+            context.employees.Add(emp);
+
+            // STEP 5: Save changes to database
+            context.SaveChanges();
+
+            // STEP 6: Redirect to the list page
+            return RedirectToAction("showAll");
+        }
+
+        // ==========================================
+        // [3] UPDATE - GET (Show Edit Form)
+        // ==========================================
+        public IActionResult Edit(int id)
+        {
+            // STEP 1: Find employee by ID
+            var employee = context.employees.Find(id);
+
+            // STEP 2: Check if employee exists
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            // STEP 3: Map Entity to ViewModel
+            var model = new EditEmployeeVM
+            {
+                Id = employee.Id,
+                Name = employee.Name,
+                Salary = employee.Salary,
+                ExistingFile = employee.File  // Keep current image filename
+            };
+
+            return View(model);
+        }
+
+        // ==========================================
+        // [3] UPDATE - POST (Save Changes)
+        // ==========================================
+        [HttpPost]
+        public IActionResult UpdateData(EditEmployeeVM editEmployee)
+        {
+            // STEP 1: Validate required fields
+            if (editEmployee.Name == null || editEmployee.Salary == 0)
+            {
+                return View(viewName: "Edit", editEmployee);
+            }
+
+            // STEP 2: Find the existing employee in database
+            var employee = context.employees.Find(editEmployee.Id);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            // STEP 3: Update basic employee data
+            employee.Name = editEmployee.Name;
+            employee.Salary = editEmployee.Salary;
+            employee.UpdatedOn = DateTime.Now;
+
+            // STEP 4: Handle file upload (if user uploaded new image)
+            if (editEmployee.File != null && editEmployee.File.Length > 0)
+            {
+                // Delete old file if it exists
+                if (!string.IsNullOrEmpty(employee.File))
+                {
+                    Upload.RemoveFile("ImageProfile", employee.File);
+                }
+
+                // Upload new file
+                employee.File = Upload.UploadFile("ImageProfile", editEmployee.File);
+            }
+            // If no new file uploaded, keep existing file (do nothing)
+
+            // STEP 5: Save changes to database
+            context.SaveChanges();
+
+            // STEP 6: Redirect to list page
+            return RedirectToAction("showAll");
+        }
+
+        // ==========================================
+        // [4] DELETE - GET (Show Confirmation Page)
+        // ==========================================
+        public IActionResult Delete(int id)
+        {
+            // STEP 1: Find employee by ID
+            var employee = context.employees.Find(id);
+
+            // STEP 2: Check if employee exists
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            // STEP 3: Map Entity to ViewModel
+            var model = new DeleteEmployeeVM
+            {
+                Id = employee.Id,
+                Name = employee.Name,
+                Salary = employee.Salary,
+                File = employee.File,
+                CreatedOn = employee.CreatedOn
+            };
+
+            return View(model);
+        }
+
+        // ==========================================
+        // [4] DELETE - POST (Actually Delete)
+        // ==========================================
+        [HttpPost]
+        public IActionResult ConfirmDelete(int id)
+        {
+            // STEP 1: Find the employee
+            var employee = context.employees.Find(id);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            // STEP 2: Delete the file if exists
+            if (!string.IsNullOrEmpty(employee.File))
+            {
+                Upload.RemoveFile("ImageProfile", employee.File);
+            }
+
+            // STEP 3: Remove employee from database
+            context.employees.Remove(employee);
+
+            // STEP 4: Save changes
+            context.SaveChanges();
+
+            // STEP 5: Redirect to list page
+            return RedirectToAction("showAll");
+        }
+    }
+}</code></pre>
+
+            <div class="info">
+                <strong>💡 Understanding HTTP Methods:</strong>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Usage</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>GET</code></td>
+                            <td>Retrieve data / Show forms</td>
+                            <td>Display edit form</td>
+                        </tr>
+                        <tr>
+                            <td><code>POST</code></td>
+                            <td>Submit data / Make changes</td>
+                            <td>Save employee data</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Important Pattern:</strong> Each CRUD operation has TWO actions:
+                <ul>
+                    <li><strong>GET action</strong> - Shows the form/page</li>
+                    <li><strong>POST action</strong> - Processes the submitted data</li>
+                </ul>
+            </div>
+
+            <div class="success">
+                ✅ Controller complete! All CRUD operations are now functional.
+            </div>
+        </section>
+
+        <!-- Step 7: Create Views -->
+        <section id="step7" class="section">
+            <h2>07. Create Views for All Operations</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Creating the user interface (HTML pages) for displaying and managing employees.
+            </div>
+
+            <h3>Create Views Folder Structure</h3>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Create folder: <code>Views/Employee/</code></strong>
+            </div>
+
+            <h3>1. Show All Employees View</h3>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Create <code>Views/Employee/showAll.cshtml</code>:</strong>
+            </div>
+
+            <pre><code>@model List&lt;crud_v2.ModelVM.EmployeeVM.ShowAllEmployeeVM&gt;
+@{
+    ViewData["Title"] = "All Employees";
+}
+
+&lt;!-- Masthead Header --&gt;
+&lt;header class="masthead bg-primary text-white text-center"&gt;
+    &lt;div class="container d-flex align-items-center flex-column"&gt;
+        &lt;h1 class="masthead-heading text-uppercase mb-0"&gt;Employee Management&lt;/h1&gt;
+        &lt;div class="divider-custom divider-light"&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-icon"&gt;&lt;i class="fas fa-users"&gt;&lt;/i&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;p class="masthead-subheading font-weight-light mb-0"&gt;
+            Manage Your Team Efficiently
+        &lt;/p&gt;
+    &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;!-- Employee List Section --&gt;
+&lt;section class="page-section portfolio" id="employees"&gt;
+    &lt;div class="container"&gt;
+        &lt;!-- Add Employee Button --&gt;
+        &lt;div class="text-center mb-5"&gt;
+            &lt;a href="/Employee/Create" class="btn btn-primary btn-xl"&gt;
+                &lt;i class="fas fa-plus me-2"&gt;&lt;/i&gt;Add New Employee
+            &lt;/a&gt;
+        &lt;/div&gt;
+
+        &lt;!-- Employee Table --&gt;
+        &lt;div class="row justify-content-center"&gt;
+            &lt;div class="col-lg-10"&gt;
+                &lt;table class="table table-hover table-striped"&gt;
+                    &lt;thead class="table-dark"&gt;
+                        &lt;tr&gt;
+                            &lt;th&gt;ID&lt;/th&gt;
+                            &lt;th&gt;Profile&lt;/th&gt;
+                            &lt;th&gt;Name&lt;/th&gt;
+                            &lt;th&gt;Salary&lt;/th&gt;
+                            &lt;th&gt;Created On&lt;/th&gt;
+                            &lt;th&gt;Actions&lt;/th&gt;
+                        &lt;/tr&gt;
+                    &lt;/thead&gt;
+                    &lt;tbody&gt;
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var employee in Model)
+                            {
+                                &lt;tr&gt;
+                                    &lt;td&gt;@employee.Id&lt;/td&gt;
+                                    &lt;td&gt;
+                                        @if (!string.IsNullOrEmpty(employee.File))
+                                        {
+                                            &lt;img src="~/Files/ImageProfile/@employee.File" 
+                                                 alt="@employee.Name" 
+                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;"&gt;
+                                        }
+                                        else
+                                        {
+                                            &lt;i class="fas fa-user-circle" style="font-size: 50px;"&gt;&lt;/i&gt;
+                                        }
+                                    &lt;/td&gt;
+                                    &lt;td&gt;@employee.Name&lt;/td&gt;
+                                    &lt;td&gt;$@employee.Salary.ToString("N2")&lt;/td&gt;
+                                    &lt;td&gt;@employee.CreatedOn.ToString("MMM dd, yyyy")&lt;/td&gt;
+                                    &lt;td&gt;
+                                        &lt;a href="/Employee/Edit/@employee.Id" 
+                                           class="btn btn-sm btn-warning"&gt;
+                                            &lt;i class="fas fa-edit"&gt;&lt;/i&gt; Edit
+                                        &lt;/a&gt;
+                                        &lt;a href="/Employee/Delete/@employee.Id" 
+                                           class="btn btn-sm btn-danger"&gt;
+                                            &lt;i class="fas fa-trash"&gt;&lt;/i&gt; Delete
+                                        &lt;/a&gt;
+                                    &lt;/td&gt;
+                                &lt;/tr&gt;
+                            }
+                        }
+                        else
+                        {
+                            &lt;tr&gt;
+                                &lt;td colspan="6" class="text-center"&gt;
+                                    &lt;p class="text-muted"&gt;No employees found. Add your first employee!&lt;/p&gt;
+                                &lt;/td&gt;
+                            &lt;/tr&gt;
+                        }
+                    &lt;/tbody&gt;
+                &lt;/table&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+
+            <h3>2. Create Employee View</h3>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>Create <code>Views/Employee/Create.cshtml</code>:</strong>
+            </div>
+
+            <pre><code>@model crud_v2.ViewModels.CreateEmployeeVM
+@{
+    ViewData["Title"] = "Add New Employee";
+}
+
+&lt;!-- Masthead Header --&gt;
+&lt;header class="masthead bg-primary text-white text-center"&gt;
+    &lt;div class="container d-flex align-items-center flex-column"&gt;
+        &lt;h1 class="masthead-heading text-uppercase mb-0"&gt;Add New Employee&lt;/h1&gt;
+        &lt;div class="divider-custom divider-light"&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-icon"&gt;&lt;i class="fas fa-user-plus"&gt;&lt;/i&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;!-- Create Form Section --&gt;
+&lt;section class="page-section" id="contact"&gt;
+    &lt;div class="container"&gt;
+        &lt;div class="row justify-content-center"&gt;
+            &lt;div class="col-lg-8 col-xl-7"&gt;
+                &lt;!-- IMPORTANT: enctype="multipart/form-data" is required for file upload --&gt;
+                &lt;form asp-action="SaveData" method="post" enctype="multipart/form-data"&gt;
+                    
+                    &lt;!-- Name Field --&gt;
+                    &lt;div class="form-floating mb-3"&gt;
+                        &lt;input class="form-control" 
+                               asp-for="Name" 
+                               type="text" 
+                               placeholder="Enter employee name" /&gt;
+                        &lt;label asp-for="Name"&gt;Employee Name&lt;/label&gt;
+                        &lt;span asp-validation-for="Name" class="text-danger"&gt;&lt;/span&gt;
+                    &lt;/div&gt;
+
+                    &lt;!-- Salary Field --&gt;
+                    &lt;div class="form-floating mb-3"&gt;
+                        &lt;input class="form-control" 
+                               asp-for="Salary" 
+                               type="number" 
+                               step="0.01"
+                               placeholder="Enter salary" /&gt;
+                        &lt;label asp-for="Salary"&gt;Salary&lt;/label&gt;
+                        &lt;span asp-validation-for="Salary" class="text-danger"&gt;&lt;/span&gt;
+                    &lt;/div&gt;
+
+                    &lt;!-- File Upload Field --&gt;
+                    &lt;div class="mb-3"&gt;
+                        &lt;label asp-for="File" class="form-label"&gt;Profile Picture&lt;/label&gt;
+                        &lt;input class="form-control" 
+                               asp-for="File" 
+                               type="file" 
+                               accept="image/*" /&gt;
+                        &lt;span asp-validation-for="File" class="text-danger"&gt;&lt;/span&gt;
+                    &lt;/div&gt;
+
+                    &lt;!-- Submit Button --&gt;
+                    &lt;div class="d-grid gap-2"&gt;
+                        &lt;button class="btn btn-primary btn-xl" type="submit"&gt;
+                            &lt;i class="fas fa-save me-2"&gt;&lt;/i&gt;Save Employee
+                        &lt;/button&gt;
+                        &lt;a href="/Employee/ShowAll" class="btn btn-secondary btn-xl"&gt;
+                            &lt;i class="fas fa-times me-2"&gt;&lt;/i&gt;Cancel
+                        &lt;/a&gt;
+                    &lt;/div&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/section&gt;
+
+@section Scripts {
+    &lt;!-- Enable client-side validation --&gt;
+    &lt;partial name="_ValidationScriptsPartial" /&gt;
+}</code></pre>
+
+            <h3>3. Edit Employee View</h3>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>Create <code>Views/Employee/Edit.cshtml</code>:</strong>
+            </div>
+
+            <pre><code>@model crud_v2.ViewModels.EditEmployeeVM
+@{
+    ViewData["Title"] = "Edit Employee";
+}
+
+&lt;!-- Masthead Header --&gt;
+&lt;header class="masthead bg-primary text-white text-center"&gt;
+    &lt;div class="container d-flex align-items-center flex-column"&gt;
+        &lt;h1 class="masthead-heading text-uppercase mb-0"&gt;Edit Employee&lt;/h1&gt;
+        &lt;div class="divider-custom divider-light"&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-icon"&gt;&lt;i class="fas fa-user-edit"&gt;&lt;/i&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;!-- Edit Form Section --&gt;
+&lt;section class="page-section" id="contact"&gt;
+    &lt;div class="container"&gt;
+        &lt;div class="row justify-content-center"&gt;
+            &lt;div class="col-lg-8 col-xl-7"&gt;
+                &lt;form asp-action="UpdateData" method="post" enctype="multipart/form-data"&gt;
+                    
+                    &lt;!-- Hidden ID Field --&gt;
+                    &lt;input type="hidden" asp-for="Id" /&gt;
+                    &lt;input type="hidden" asp-for="ExistingFile" /&gt;
+
+                    &lt;!-- Current Image Display --&gt;
+                    @if (!string.IsNullOrEmpty(Model.ExistingFile))
+                    {
+                        &lt;div class="text-center mb-3"&gt;
+                            &lt;p&gt;&lt;strong&gt;Current Profile Picture:&lt;/strong&gt;&lt;/p&gt;
+                            &lt;img src="~/Files/ImageProfile/@Model.ExistingFile" 
+                                 alt="Current Profile" 
+                                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;"&gt;
+                        &lt;/div&gt;
+                    }
+
+                    &lt;!-- Name Field --&gt;
+                    &lt;div class="form-floating mb-3"&gt;
+                        &lt;input class="form-control" 
+                               asp-for="Name" 
+                               type="text" 
+                               placeholder="Enter employee name" /&gt;
+                        &lt;label asp-for="Name"&gt;Employee Name&lt;/label&gt;
+                        &lt;span asp-validation-for="Name" class="text-danger"&gt;&lt;/span&gt;
+                    &lt;/div&gt;
+
+                    &lt;!-- Salary Field --&gt;
+                    &lt;div class="form-floating mb-3"&gt;
+                        &lt;input class="form-control" 
+                               asp-for="Salary" 
+                               type="number" 
+                               step="0.01"
+                               placeholder="Enter salary" /&gt;
+                        &lt;label asp-for="Salary"&gt;Salary&lt;/label&gt;
+                        &lt;span asp-validation-for="Salary" class="text-danger"&gt;&lt;/span&gt;
+                    &lt;/div&gt;
+
+                    &lt;!-- File Upload Field --&gt;
+                    &lt;div class="mb-3"&gt;
+                        &lt;label asp-for="File" class="form-label"&gt;
+                            Upload New Profile Picture (leave empty to keep current)
+                        &lt;/label&gt;
+                        &lt;input class="form-control" 
+                               asp-for="File" 
+                               type="file" 
+                               accept="image/*" /&gt;
+                        &lt;span asp-validation-for="File" class="text-danger"&gt;&lt;/span&gt;
+                    &lt;/div&gt;
+
+                    &lt;!-- Submit Buttons --&gt;
+                    &lt;div class="d-grid gap-2"&gt;
+                        &lt;button class="btn btn-primary btn-xl" type="submit"&gt;
+                            &lt;i class="fas fa-save me-2"&gt;&lt;/i&gt;Update Employee
+                        &lt;/button&gt;
+                        &lt;a href="/Employee/ShowAll" class="btn btn-secondary btn-xl"&gt;
+                            &lt;i class="fas fa-times me-2"&gt;&lt;/i&gt;Cancel
+                        &lt;/a&gt;
+                    &lt;/div&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/section&gt;
+
+@section Scripts {
+    &lt;partial name="_ValidationScriptsPartial" /&gt;
+}</code></pre>
+
+            <h3>4. Delete Employee View</h3>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>Create <code>Views/Employee/Delete.cshtml</code>:</strong>
+            </div>
+
+            <pre><code>@model crud_v2.ViewModels.DeleteEmployeeVM
+@{
+    ViewData["Title"] = "Delete Employee";
+}
+
+&lt;!-- Masthead Header --&gt;
+&lt;header class="masthead bg-danger text-white text-center"&gt;
+    &lt;div class="container d-flex align-items-center flex-column"&gt;
+        &lt;h1 class="masthead-heading text-uppercase mb-0"&gt;Delete Employee&lt;/h1&gt;
+        &lt;div class="divider-custom divider-light"&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-icon"&gt;&lt;i class="fas fa-exclamation-triangle"&gt;&lt;/i&gt;&lt;/div&gt;
+            &lt;div class="divider-custom-line"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;p class="masthead-subheading font-weight-light mb-0"&gt;
+            Are you sure you want to delete this employee?
+        &lt;/p&gt;
+    &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;!-- Delete Confirmation Section --&gt;
+&lt;section class="page-section"&gt;
+    &lt;div class="container"&gt;
+        &lt;div class="row justify-content-center"&gt;
+            &lt;div class="col-lg-8 col-xl-7"&gt;
+                &lt;div class="card shadow-lg"&gt;
+                    &lt;div class="card-body text-center"&gt;
+                        
+                        &lt;!-- Profile Picture --&gt;
+                        @if (!string.IsNullOrEmpty(Model.File))
+                        {
+                            &lt;img src="~/Files/ImageProfile/@Model.File" 
+                                 alt="@Model.Name" 
+                                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;"
+                                 class="mb-4"&gt;
+                        }
+                        else
+                        {
+                            &lt;i class="fas fa-user-circle mb-4" style="font-size: 150px; color: #ccc;"&gt;&lt;/i&gt;
+                        }
+
+                        &lt;!-- Employee Details --&gt;
+                        &lt;h3&gt;@Model.Name&lt;/h3&gt;
+                        &lt;p class="lead"&gt;Salary: $@Model.Salary.ToString("N2")&lt;/p&gt;
+                        &lt;p class="text-muted"&gt;Joined: @Model.CreatedOn.ToString("MMMM dd, yyyy")&lt;/p&gt;
+
+                        &lt;div class="alert alert-warning mt-4" role="alert"&gt;
+                            &lt;i class="fas fa-exclamation-triangle me-2"&gt;&lt;/i&gt;
+                            &lt;strong&gt;Warning!&lt;/strong&gt; This action cannot be undone.
+                        &lt;/div&gt;
+
+                        &lt;!-- Confirmation Form --&gt;
+                        &lt;form asp-action="ConfirmDelete" method="post" class="d-inline"&gt;
+                            &lt;input type="hidden" name="id" value="@Model.Id" /&gt;
+                            
+                            &lt;div class="d-grid gap-2 mt-4"&gt;
+                                &lt;button type="submit" class="btn btn-danger btn-xl"&gt;
+                                    &lt;i class="fas fa-trash me-2"&gt;&lt;/i&gt;Yes, Delete Employee
+                                &lt;/button&gt;
+                                &lt;a href="/Employee/ShowAll" class="btn btn-secondary btn-xl"&gt;
+                                    &lt;i class="fas fa-times me-2"&gt;&lt;/i&gt;Cancel
+                                &lt;/a&gt;
+                            &lt;/div&gt;
+                        &lt;/form&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+
+            <div class="warning">
+                <strong>⚠️ Critical Points for Views:</strong>
+                <ul>
+                    <li>Create and Edit forms MUST have <code>enctype="multipart/form-data"</code> for file uploads</li>
+                    <li>Use <code>asp-for</code> for automatic model binding and validation</li>
+                    <li>Include <code>@section Scripts</code> for client-side validation</li>
+                    <li>Hidden fields preserve data (like Id and ExistingFile)</li>
+                </ul>
+            </div>
+
+            <div class="success">
+                ✅ All views created! Your UI is now complete and functional.
+            </div>
+        </section>
+
+        <!-- Step 8: Testing & Final Setup -->
+        <section id="step8" class="section">
+            <h2>08. Testing & Final Configuration</h2>
+            
+            <div class="info">
+                <strong>🎯 What we're doing:</strong> Final checks and testing to ensure everything works correctly.
+            </div>
+
+            <h3>Pre-Flight Checklist</h3>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>Verify Database Connection:</strong>
+            </div>
+            <ul>
+                <li>Open SQL Server Management Studio (SSMS)</li>
+                <li>Check if <code>EMPDB</code> database exists</li>
+                <li>Verify <code>employees</code> table structure</li>
+            </ul>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>Check File Structure:</strong>
+            </div>
+            <ul>
+                <li>Ensure <code>wwwroot/Files/ImageProfile/</code> folder exists</li>
+                <li>Verify all CSS and JS files are in <code>wwwroot/</code></li>
+                <li>Check that <code>assets/</code> folder contains images</li>
+            </ul>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>Verify NuGet Packages:</strong>
+            </div>
+            <ul>
+                <li>Right-click project → Manage NuGet Packages → Installed</li>
+                <li>Confirm all three EF packages are installed and same version</li>
+            </ul>
+
+            <h3>Testing Each Operation</h3>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>Test CREATE:</strong>
+            </div>
+            <ol>
+                <li>Run the application (F5)</li>
+                <li>Navigate to "Add Employee"</li>
+                <li>Fill in name and salary</li>
+                <li>Upload a profile picture</li>
+                <li>Click "Save Employee"</li>
+                <li>✅ Verify employee appears in the list</li>
+            </ol>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>Test READ:</strong>
+            </div>
+            <ol>
+                <li>Go to "All Employees"</li>
+                <li>✅ Verify all employees display correctly</li>
+                <li>✅ Check that images load properly</li>
+                <li>✅ Verify salary formatting ($X,XXX.XX)</li>
+            </ol>
+
+            <div class="step-box">
+                <span class="step-number">6</span>
+                <strong>Test UPDATE:</strong>
+            </div>
+            <ol>
+                <li>Click "Edit" on an employee</li>
+                <li>✅ Verify form loads with existing data</li>
+                <li>✅ Check current image displays</li>
+                <li>Change name or salary</li>
+                <li>Optionally upload new image</li>
+                <li>Click "Update Employee"</li>
+                <li>✅ Verify changes appear in the list</li>
+            </ol>
+
+            <div class="step-box">
+                <span class="step-number">7</span>
+                <strong>Test DELETE:</strong>
+            </div>
+            <ol>
+                <li>Click "Delete" on an employee</li>
+                <li>✅ Verify confirmation page shows correct employee</li>
+                <li>Click "Yes, Delete Employee"</li>
+                <li>✅ Verify employee removed from list</li>
+                <li>✅ Check that image file was deleted from <code>wwwroot/Files/ImageProfile/</code></li>
+            </ol>
+
+            <h3>Common Issues & Solutions</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Issue</th>
+                        <th>Solution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Database not found</td>
+                        <td>Run <code>Update-Database</code> in Package Manager Console</td>
+                    </tr>
+                    <tr>
+                        <td>File upload fails</td>
+                        <td>Create <code>wwwroot/Files/ImageProfile/</code> folder manually</td>
+                    </tr>
+                    <tr>
+                        <td>CSS not loading</td>
+                        <td>Check file paths in _Layout.cshtml and verify files exist</td>
+                    </tr>
+                    <tr>
+                        <td>Validation not working</td>
+                        <td>Ensure jQuery validation scripts are included in _Layout.cshtml</td>
+                    </tr>
+                    <tr>
+                        <td>Images not displaying</td>
+                        <td>Check image path: <code>~/Files/ImageProfile/@Model.File</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Performance Tips</h3>
+
+            <div class="info">
+                <strong>💡 Best Practices:</strong>
+                <ul>
+                    <li>Limit file upload size (add validation for max file size)</li>
+                    <li>Use proper DbContext disposal with <code>using</code> statement</li>
+                    <li>Add pagination for large employee lists</li>
+                    <li>Implement error logging for production</li>
+                    <li>Add image compression before saving</li>
+                </ul>
+            </div>
+
+            <h3>Security Considerations</h3>
+
+            <div class="warning">
+                <strong>⚠️ Important Security Notes:</strong>
+                <ul>
+                    <li>Validate file types (accept only images)</li>
+                    <li>Check file size to prevent large uploads</li>
+                    <li>Sanitize user input to prevent SQL injection</li>
+                    <li>Use parameterized queries (EF does this automatically)</li>
+                    <li>Add authentication/authorization in production</li>
+                </ul>
+            </div>
+
+            <div class="success">
+                ✅ Application tested and ready! You now have a fully functional CRUD system!
+            </div>
+        </section>
+
+        <!-- Final Summary -->
+        <section class="section">
+            <h2>🎉 Congratulations!</h2>
+            <h3>You've Successfully Built a Complete CRUD Application!</h3>
+            
+            <div class="step-box">
+                ✅ <strong>ASP.NET Core MVC</strong> - Clean architecture with separation of concerns
+            </div>
+            
+            <div class="step-box">
+                ✅ <strong>Entity Framework Core</strong> - Code-first database with migrations
+            </div>
+            
+            <div class="step-box">
+                ✅ <strong>CRUD Operations</strong> - Complete Create, Read, Update, Delete functionality
+            </div>
+            
+            <div class="step-box">
+                ✅ <strong>File Upload System</strong> - Image handling with unique GUID filenames
+            </div>
+            
+            <div class="step-box">
+                ✅ <strong>ViewModels</strong> - Separate models for each operation
+            </div>
+            
+            <div class="step-box">
+                ✅ <strong>Validation</strong> - Both server-side and client-side validation
+            </div>
+            
+            <div class="step-box">
+                ✅ <strong>Bootstrap Design</strong> - Professional responsive UI with Freelancer theme
+            </div>
+
+            <h3 style="margin-top: 3rem;">Complete Project Structure</h3>
+            
+            <pre style="background: rgba(0, 0, 0, 0.6); border: 2px solid var(--accent-primary); padding: 2rem;"><code style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.8;">📁 <span style="color: var(--accent-secondary); font-weight: bold;">crud_v2/</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Controllers/</span>
+│  └─ 📄 <span style="color: var(--accent-primary);">EmployeeController.cs</span>        <span style="color: #888;">// All CRUD actions</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">DAL/</span>
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">DB/</span>
+│  │  └─ 📄 <span style="color: var(--accent-primary);">ApplicationDbContext.cs</span>  <span style="color: #888;">// Database context</span>
+│  │
+│  └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Entities/</span>
+│     └─ 📄 <span style="color: var(--accent-primary);">Employee.cs</span>               <span style="color: #888;">// Database entity</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">ViewModels/</span>
+│  └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">EmployeeVM/</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">ShowAllEmployeeVM.cs</span>      <span style="color: #888;">// List display</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">CreateEmployeeVM.cs</span>       <span style="color: #888;">// Create form</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">EditEmployeeVM.cs</span>         <span style="color: #888;">// Edit form</span>
+│     └─ 📄 <span style="color: var(--accent-primary);">DeleteEmployeeVM.cs</span>       <span style="color: #888;">// Delete confirmation</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Helper/</span>
+│  └─ 📄 <span style="color: var(--accent-primary);">Upload.cs</span>                   <span style="color: #888;">// File upload/delete helper</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Views/</span>
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Shared/</span>
+│  │  ├─ 📄 <span style="color: var(--accent-primary);">_Layout.cshtml</span>            <span style="color: #888;">// Main layout</span>
+│  │  └─ 📄 <span style="color: var(--accent-primary);">_ViewStart.cshtml</span>         <span style="color: #888;">// Layout config</span>
+│  │
+│  └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Employee/</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">showAll.cshtml</span>            <span style="color: #888;">// Employee list</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">Create.cshtml</span>             <span style="color: #888;">// Create form</span>
+│     ├─ 📄 <span style="color: var(--accent-primary);">Edit.cshtml</span>               <span style="color: #888;">// Edit form</span>
+│     └─ 📄 <span style="color: var(--accent-primary);">Delete.cshtml</span>             <span style="color: #888;">// Delete confirmation</span>
+│
+├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">wwwroot/</span>
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">css/</span>
+│  │  └─ 📄 <span style="color: var(--accent-primary);">styles.css</span>                <span style="color: #888;">// Bootstrap theme</span>
+│  │
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">js/</span>
+│  │  └─ 📄 <span style="color: var(--accent-primary);">scripts.js</span>                <span style="color: #888;">// Bootstrap theme JS</span>
+│  │
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">assets/</span>                       <span style="color: #888;">// Images, icons</span>
+│  │
+│  ├─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">lib/</span>                          <span style="color: #888;">// jQuery, validation</span>
+│  │
+│  └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Files/</span>
+│     └─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">ImageProfile/</span>              <span style="color: #888;">// Uploaded images</span>
+│
+└─ 📁 <span style="color: var(--accent-secondary); font-weight: bold;">Migrations/</span>
+   └─ 📄 <span style="color: var(--accent-primary);">[timestamp]_InitialCreate.cs</span> <span style="color: #888;">// Database migration</span>
+</code></pre>
+
+            <h3 style="margin-top: 3rem;">What You've Learned</h3>
+            
+            <ul>
+                <li>✅ Setting up Entity Framework Core with SQL Server</li>
+                <li>✅ Creating and applying database migrations</li>
+                <li>✅ Implementing ViewModels for data transfer</li>
+                <li>✅ Building controller actions for CRUD operations</li>
+                <li>✅ Creating Razor views with Bootstrap styling</li>
+                <li>✅ Handling file uploads and storage</li>
+                <li>✅ Implementing server-side and client-side validation</li>
+                <li>✅ Using helper classes for reusable code</li>
+                <li>✅ Working with GUID for unique filenames</li>
+                <li>✅ Integrating Bootstrap themes in ASP.NET MVC</li>
+            </ul>
+
+            <div class="info">
+                <strong>📚 Next Steps to Enhance Your Application:</strong>
+                <ul>
+                    <li>Add search and filter functionality</li>
+                    <li>Implement pagination for large datasets</li>
+                    <li>Add user authentication and authorization</li>
+                    <li>Create department categories for employees</li>
+                    <li>Add export to Excel/PDF functionality</li>
+                    <li>Implement soft delete (mark as deleted instead of removing)</li>
+                    <li>Add audit logging (track all changes)</li>
+                    <li>Create dashboard with charts and statistics</li>
+                </ul>
+            </div>
+
+            <div class="warning">
+                <strong>💾 Remember to Save This Guide!</strong> Bookmark this page for future reference when building similar applications.
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Built with ASP.NET Core MVC 🚀</p>
+        <p>From Zero to Full CRUD - Complete Tutorial Guide</p>
+        <p style="margin-top: 1rem; opacity: 0.7;">Happy Coding! 💻</p>
+    </footer>
+
+    <script>
+        // Toggle Navigation Function
+        function toggleNav() {
+            const navContent = document.getElementById('navContent');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            navContent.classList.toggle('expanded');
+            toggleIcon.classList.toggle('rotated');
+            
+            // Change icon
+            if (navContent.classList.contains('expanded')) {
+                toggleIcon.textContent = '▲';
+            } else {
+                toggleIcon.textContent = '▼';
+            }
+        }
+
+        // Scroll Progress Bar
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.getElementById('progressBar').style.width = scrollPercent + '%';
+        });
+
+        // Smooth Scroll for Navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
